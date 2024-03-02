@@ -1,0 +1,92 @@
+--// Locals \\--
+
+local ts = game:GetService("TeleportService")
+local p = game:GetService("Players").LocalPlayer
+
+--// Don't touch this \\--
+
+toggle = true
+Drop = "Drop"
+DropCount = 0
+CDFinished = false
+CDTime = 0.07
+
+--// Calculator \\--
+
+-- Calculate the total time to drop all items
+local totalTime = Maximum * (0.48 + CDTime)
+
+-- Calculate the wait time between drops
+local waitTime = totalTime / Maximum
+
+--// Notification \\--
+
+if not Gold then
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "IN PROGRESS";
+    Text = "Duping...";
+    Icon = "rbxassetid://10261103944";
+    Duration = waitTime * (Maximum - DropCount)
+})
+end
+
+--// Data Rollback and Auto Drop \\--
+
+while DropCount < Maximum do
+    local ohTable1 = {
+        ["1"] = "\255"
+    }
+    game:GetService("ReplicatedStorage").Remotes.Data.UpdateHotbar:FireServer(ohTable1)
+    
+    if toggle and not Gold then
+        local existing = p.Backpack.Tools:FindFirstChild(Item)
+        if not existing then
+            warn(Item .. " not found in inventory. Rejoining...")
+            ts:Teleport(game.PlaceId, p)
+            break
+        else
+            if not CDFinished then
+                -- Cooldown for the first drop
+                wait(CDDuration)
+                CDFinished = true
+            else
+                -- Proceed with dropping
+                game:GetService("ReplicatedStorage").Remotes.Information.InventoryManage:FireServer(Drop, Item)
+                DropCount = DropCount + 1
+                wait(waitTime) -- Wait between drops
+            end
+        end
+    end
+    
+    -- Rejoin the game if the drop count is close to reaching the maximum
+    if DropCount >= Maximum - Threshold and not Gold then
+        ts:Teleport(game.PlaceId, p)
+        spawn(function()
+            wait(0.1)
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Done!";
+                Text = "Successfully Duped " .. Item;
+                Icon = "rbxassetid://12622542256";
+                Duration = 3
+            })
+        end)
+    end
+    
+    --// Gold \\--
+
+    if Gold then
+        game:GetService("Players").LocalPlayer.PlayerGui.HUD.Holder.DropGold.GoldDrop.LocalScript.RemoteEvent:FireServer(GoldAmount)
+        wait(0.1)
+        ts:Teleport(game.PlaceId, p)
+        spawn(function()
+            wait(0.1)
+            game:GetService("StarterGui"):SetCore("SendNotification", {
+                Title = "Done!";
+                Text = "Successfully Duped " .. GoldAmount .. " Gold";
+                Icon = "rbxassetid://14518821188";
+                Duration = 3
+            })
+        end)
+        break
+    end
+end
