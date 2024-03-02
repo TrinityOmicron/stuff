@@ -10,6 +10,13 @@ Drop = "Drop"
 DropCount = 0
 CDFinished = false
 CDTime = 0.07
+Maximum = 100
+
+--// Wait until the game is fully loaded \\--
+
+if not game:IsLoaded() then
+    game.Loaded:Wait()
+end
 
 --// Calculator \\--
 
